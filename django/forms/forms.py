@@ -262,16 +262,21 @@ class BaseForm(object):
         self.cleaned_data.
         """
         self._errors = ErrorDict()
-        if not self.is_bound: # Stop further processing.
-            return
-        self.cleaned_data = {}
-        # If the form is permitted to be empty, and none of the form data has
-        # changed from the initial data, short circuit any validation.
-        if self.empty_permitted and not self.has_changed():
-            return
-        self._clean_fields()
-        self._clean_form()
-        self._post_clean()
+        try:
+            if not self.is_bound: # Stop further processing.
+                return
+            self.cleaned_data = {}
+            # If the form is permitted to be empty, and none of the form data has
+            # changed from the initial data, short circuit any validation.
+            if self.empty_permitted and not self.has_changed():
+                return
+            self._clean_fields()
+            self._clean_form()
+            self._post_clean()
+        except Exception as e:
+            # Revert the _errors on exception (see #)
+            self._errors = None
+            raise e
 
     def _clean_fields(self):
         for name, field in self.fields.items():

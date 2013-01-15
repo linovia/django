@@ -1797,3 +1797,13 @@ class FormsTestCase(TestCase):
         form = NameForm(data={'name' : ['fname', 'lname']})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data, {'name' : 'fname lname'})
+
+    def test_crashing_full_clean(self):
+        class CrashingPerson(Person):
+            def clean_first_name(self):
+                raise ValueError('eeeek')
+
+        p = CrashingPerson({'first_name': 'John', 'last_name': 'Lennon', 'birthday': '1940-10-9'})
+        self.assertRaisesMessage(ValueError, 'eeeek', p.is_valid)
+        # If we call again is_valid, the same behavior is expected
+        self.assertRaisesMessage(ValueError, 'eeeek', p.is_valid)
