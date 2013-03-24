@@ -8,6 +8,7 @@ from __future__ import absolute_import, unicode_literals
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS, FieldError
 from django.forms.fields import Field, ChoiceField
 from django.forms.forms import BaseForm, get_declared_fields
+from django.forms.forms import DeclarativeFieldsMetaclass
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.forms.util import ErrorList
 from django.forms.widgets import (SelectMultiple, HiddenInput,
@@ -188,7 +189,7 @@ class ModelFormOptions(object):
         self.widgets = getattr(options, 'widgets', None)
 
 
-class ModelFormMetaclass(type):
+class ModelFormMetaclass(DeclarativeFieldsMetaclass):
     def __new__(cls, name, bases, attrs):
         formfield_callback = attrs.pop('formfield_callback', None)
         try:
@@ -196,14 +197,17 @@ class ModelFormMetaclass(type):
         except NameError:
             # We are defining ModelForm itself.
             parents = None
-        declared_fields = get_declared_fields(bases, attrs, False)
+
+        # declared_fields = get_declared_fields(bases, attrs, False)
         new_class = super(ModelFormMetaclass, cls).__new__(cls, name, bases,
                 attrs)
+
+        # if 'media' not in attrs:
+        #     new_class.media = media_property(new_class)
+
         if not parents:
             return new_class
 
-        if 'media' not in attrs:
-            new_class.media = media_property(new_class)
         opts = new_class._meta = ModelFormOptions(getattr(new_class, 'Meta', None))
         if opts.model:
             # If a model is defined, extract form fields from it.
@@ -212,7 +216,7 @@ class ModelFormMetaclass(type):
             # make sure opts.fields doesn't specify an invalid field
             none_model_fields = [k for k, v in six.iteritems(fields) if not v]
             missing_fields = set(none_model_fields) - \
-                             set(declared_fields.keys())
+                             set(new_class.declared_fields.keys())
             if missing_fields:
                 message = 'Unknown field(s) (%s) specified for %s'
                 message = message % (', '.join(missing_fields),
@@ -220,12 +224,12 @@ class ModelFormMetaclass(type):
                 raise FieldError(message)
             # Override default model fields with any custom declared ones
             # (plus, include all the other declared fields).
-            fields.update(declared_fields)
+            fields.update(new_class.declared_fields)
         else:
-            fields = declared_fields
-        new_class.declared_fields = declared_fields
+            fields = new_class.declared_fields
         new_class.base_fields = fields
         return new_class
+
 
 class BaseModelForm(BaseForm):
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,

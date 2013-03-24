@@ -57,18 +57,26 @@ def get_declared_fields(bases, attrs, with_base_fields=True):
 
     return SortedDict(fields)
 
+
 class DeclarativeFieldsMetaclass(type):
     """
     Metaclass that converts Field attributes to a dictionary called
     'base_fields', taking into account parent class 'base_fields' as well.
     """
     def __new__(cls, name, bases, attrs):
-        attrs['base_fields'] = get_declared_fields(bases, attrs)
-        new_class = super(DeclarativeFieldsMetaclass,
-                     cls).__new__(cls, name, bases, attrs)
+
+        declared_fields = get_declared_fields(bases, attrs, False)
+        new_class = super(DeclarativeFieldsMetaclass, cls).__new__(cls, name, bases,
+                attrs)
+
         if 'media' not in attrs:
             new_class.media = media_property(new_class)
+
+        new_class.declared_fields = declared_fields
+        new_class.base_fields = declared_fields
+
         return new_class
+
 
 @python_2_unicode_compatible
 class BaseForm(object):
