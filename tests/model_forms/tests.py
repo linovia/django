@@ -199,6 +199,18 @@ class ModelFormBaseTest(TestCase):
         self.assertEqual(list(ExtraFields.base_fields),
                          ['name', 'slug', 'url', 'some_extra_field'])
 
+    def test_mixin_fields(self):
+        from django.forms.models import ModelFormMetaclass
+        from django.utils import six
+        class MixinFields(six.with_metaclass(ModelFormMetaclass, object)):
+            some_extra_field = forms.BooleanField()
+
+        class ExtraFields(MixinFields, BaseCategoryForm):
+            pass
+
+        self.assertEqual(list(ExtraFields.base_fields),
+                         ['name', 'slug', 'url', 'some_extra_field'])
+
     def test_replace_field(self):
         class ReplaceField(forms.ModelForm):
             url = forms.BooleanField()
