@@ -200,9 +200,9 @@ class ModelFormBaseTest(TestCase):
                          ['name', 'slug', 'url', 'some_extra_field'])
 
     def test_mixin_fields(self):
-        from django.forms.models import ModelFormMetaclass
-        from django.utils import six
-        class MixinFields(six.with_metaclass(ModelFormMetaclass, object)):
+        from django.forms.forms import DeclarativeFieldsMetaclass
+
+        class MixinFields(six.with_metaclass(DeclarativeFieldsMetaclass, object)):
             some_extra_field = forms.BooleanField()
 
         class ExtraFields(MixinFields, BaseCategoryForm):

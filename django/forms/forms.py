@@ -65,7 +65,7 @@ class DeclarativeFieldsMetaclass(type):
     """
     def __new__(cls, name, bases, attrs):
 
-        declared_fields = get_declared_fields(bases, attrs, False)
+        declared_fields = get_declared_fields(bases, attrs, True)
         new_class = super(DeclarativeFieldsMetaclass, cls).__new__(cls, name, bases,
                 attrs)
 
