@@ -910,6 +910,7 @@ This code would all live in a ``models.py`` file for a custom
 authentication app::
 
     from django.db import models
+    from django.utils.encoding import python_2_unicode_compatible
     from django.contrib.auth.models import (
         BaseUserManager, AbstractBaseUser
     )
@@ -947,6 +948,7 @@ authentication app::
             return user
 
 
+    @python_2_unicode_compatible
     class MyUser(AbstractBaseUser):
         email = models.EmailField(
             verbose_name='email address',
@@ -971,8 +973,7 @@ authentication app::
             # The user is identified by their email address
             return self.email
 
-        # On Python 3: def __str__(self):
-        def __unicode__(self):
+        def __str__(self):
             return self.email
 
         def has_perm(self, perm, obj=None):
